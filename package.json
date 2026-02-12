@@ -1,0 +1,18 @@
+{
+  "name": "motia-iii-example",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "iii",
+    "build": "motia build"
+  },
+  "dependencies": {
+    "motia": "^1.0.0-beta.197",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}
