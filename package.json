@@ -7,7 +7,7 @@
     "build": "motia build"
   },
   "dependencies": {
-    "motia": "next",
+    "motia": "latest",
     "zod": "^4.1.13"
   },
   "devDependencies": {
