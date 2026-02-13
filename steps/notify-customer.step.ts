@@ -15,7 +15,7 @@ export const config = {
   triggers: [
     {
       type: 'queue',
-      topic: 'ticket.triaged',
+      topic: 'ticket::triaged',
       input: triagedSchema,
     },
   ],

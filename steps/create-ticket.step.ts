@@ -28,7 +28,7 @@ export const config = {
       },
     },
   ],
-  enqueues: ['ticket.created'],
+  enqueues: ['ticket::created'],
 } as const satisfies StepConfig
 
 export const handler: Handlers<typeof config> = async (request, { enqueue, logger, state }) => {
@@ -55,7 +55,7 @@ export const handler: Handlers<typeof config> = async (request, { enqueue, logge
   logger.info('Ticket created', { ticketId, priority })
 
   await enqueue({
-    topic: 'ticket.created',
+    topic: 'ticket::created',
     data: { ticketId, title, priority, customerEmail },
   })
 

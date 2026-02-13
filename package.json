@@ -1,14 +1,13 @@
 {
   "name": "motia-iii-example",
   "version": "0.0.1",
-  "private": true,
   "type": "module",
   "scripts": {
     "dev": "iii",
     "build": "motia build"
   },
   "dependencies": {
-    "motia": "^1.0.0-beta.197",
+    "motia": "next",
     "zod": "^4.1.13"
   },
   "devDependencies": {

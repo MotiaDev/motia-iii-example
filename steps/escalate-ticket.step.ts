@@ -26,7 +26,7 @@ export const stepConfig = {
   description: 'Multi-trigger: escalates tickets from SLA breach or manual request',
   flows: ['support-ticket-flow'],
   triggers: [
-    queue('ticket.sla-breached', { input: breachSchema }),
+    queue('ticket::sla-breached', { input: breachSchema }),
     api('POST', '/tickets/escalate', {
       bodySchema: manualEscalateSchema,
       responseSchema: {
