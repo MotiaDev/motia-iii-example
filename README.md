@@ -1,8 +1,4 @@
-# Motia III Example
-
-A support ticket management system built with Motia and iii.
-
-## Getting Started
+# Getting Started
 
 1. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
 2. Run `iii -c config.yaml` to start the server (API on port 3111)
