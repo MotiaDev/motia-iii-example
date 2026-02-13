@@ -14,6 +14,6 @@
    curl http://localhost:3111/tickets
    ```
 
-4. Explore `/steps` to see how Motia works with MultiTriggers and the iii backend
+4. Explore `/steps` and `config.yaml` to see how Motia works with MultiTriggers and the iii backend
 
 Motia is just the beginning, visit https://iii.dev to learn more and stay up to date with our progress.
