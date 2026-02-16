@@ -73,5 +73,6 @@ modules:
       watch:
         - steps/**/*.ts
       exec:
-        - npx motia dev
-        - bun run --enable-source-maps dist/index-dev.js
+        - npm install
+        - npx motia@next dev
+        - node dist/index-dev.js
