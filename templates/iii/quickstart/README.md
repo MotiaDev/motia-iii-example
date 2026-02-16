@@ -1,12 +1,20 @@
 # Welcome to iii
 
-This is the iii quickstart project, it's intended to demonstrate how iii works, teach the basics of using iii, and show the power of having a central coordinator.
+This is the iii quickstart project, it's intended to demonstrate how iii works,
+teach the basics of using iii, and show the power of having a central coordinator.
 
-One of the first things you might notice is that the `services/` folder contains `client` and `payment-service` TypeScript projects, a Rust `compute-service`, and a Python `data-service`. For demonstration these services are all in the same project. The languages for each service, and project structure are chosen only for the convenience of demonstration.
+One of the first things you might notice is that the `services/` folder contains
+`client` and `payment-service` TypeScript projects, a Rust `compute-service`, and
+a Python `data-service`. For demonstration these services are all in the
+same project. The languages for each service, and project structure are chosen
+only for the convenience of demonstration.
 
-These services can easily be located in their own projects, written in other languages, or already running on servers which you only have API access to.
+These services can easily be located in their own projects,
+written in other languages, or already running on servers where
+only API access is available.
 
-Check the `services/client/src/worker.ts` file to see how this works. The Node SDK is similar across all languages that iii supports.
+Check the `services/client/src/worker.ts` file to see how this works.
+The iii Node SDK is functionally identical to the iii's SDKs for other languages.
 
 ## Prerequisites
 
@@ -41,7 +49,8 @@ This will start the complete service architecture.
 
 #### Option B: Run each in a separate terminal
 
-While it's not necessary to start all services at least Client and Payment Service need to be running.
+While it's not necessary to start all services at least Client and Payment Service
+need to be running.
 
 ```bash
 # Client (TypeScript orchestrator)
@@ -74,7 +83,10 @@ curl -X POST http://localhost:3111/orchestrate \
   -d '{"data":{"message":"hello from client"},"n":42}' | jq
 ```
 
-If all services are running the output will look like the below. If some services aren't the application will still run the available services and there will be error reports both in the JSON returned and on the iii console output.
+If all services are running the output will look like the below.
+If some services aren't the application will still run the available
+services and there will be error reports both in the JSON returned
+and on the iii console output.
 
 ```json
 {
@@ -108,7 +120,8 @@ If all services are running the output will look like the below. If some service
 }
 ```
 
-Congratulations! This project executed functions across 3 languages, 4 service boundaries, with complete observability, and automatic asynchronous retries.
+Congratulations! This project executed functions across 3 languages, 4 service boundaries,
+with complete observability, and automatic asynchronous retries.
 
 ## Review the code
 
@@ -128,4 +141,6 @@ Look at `worker.ts` for a full explanation of how this worked.
     └──────────┘ └─────────┘ └───────┘ └──────────┘
 ```
 
-Services communicate via the iii engine regardless of language and with iii performing the central orchestration it is possible to call functions across processes, languages, services, domains, and application boundaries.
+Services communicate via the iii engine regardless of language and with iii
+performing the central orchestration it is possible to call functions across
+processes, languages, services, domains, and application boundaries.

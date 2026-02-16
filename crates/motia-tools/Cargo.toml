@@ -3,10 +3,10 @@ name = "motia-tools"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-description = "CLI for scaffolding Motia projects with iii integration"
+description = "CLI for managing Motia projects with iii integration"
 
 [[bin]]
-name = "motia-tools"
+name = "motia"
 path = "src/main.rs"
 
 [dependencies]

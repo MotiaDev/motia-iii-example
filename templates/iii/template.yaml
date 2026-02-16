@@ -8,7 +8,7 @@ templates:
 shared_files:
   - source: default-gitignore
     dest: .gitignore
-  - source: default-iii-config
+  - source: default-iii-config.yaml
     dest: iii-config.yaml
 
 # Global language-specific file patterns

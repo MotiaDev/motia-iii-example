@@ -3,7 +3,7 @@ name = "iii-tools"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-description = "CLI for scaffolding iii projects"
+description = "CLI for managing iii projects"
 
 [[bin]]
 name = "iii-tools"

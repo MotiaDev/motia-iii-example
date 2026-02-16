@@ -17,9 +17,6 @@ use url::Url;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
-/// Environment variable name for GitHub token (works with private repos)
-pub const GITHUB_TOKEN_ENV: &str = "GITHUB_TOKEN";
-
 /// Template source - either remote URL or local directory
 #[derive(Debug, Clone)]
 pub enum TemplateSource {
@@ -54,8 +51,6 @@ struct TemplateCache {
 pub struct TemplateFetcher {
     source: TemplateSource,
     client: reqwest::Client,
-    /// Optional GitHub token for private repos
-    github_token: Option<String>,
     /// Cache of downloaded/built and extracted templates
     template_cache: HashMap<String, TemplateCache>,
 }
@@ -63,15 +58,12 @@ pub struct TemplateFetcher {
 impl TemplateFetcher {
     /// Create a new fetcher with a custom user agent
     pub fn new(source: TemplateSource, user_agent: &str) -> Self {
-        let github_token = std::env::var(GITHUB_TOKEN_ENV).ok();
-
         Self {
             source,
             client: reqwest::Client::builder()
                 .user_agent(user_agent)
                 .build()
                 .unwrap_or_else(|_| reqwest::Client::new()),
-            github_token,
             template_cache: HashMap::new(),
         }
     }
@@ -85,19 +77,6 @@ impl TemplateFetcher {
     /// Create a fetcher for local templates
     pub fn from_local(path: PathBuf, user_agent: &str) -> Self {
         Self::new(TemplateSource::local(path), user_agent)
-    }
-
-    /// Build a request with optional auth header
-    fn build_request(&self, url: Url) -> reqwest::RequestBuilder {
-        let mut request = self.client.get(url);
-
-        if let Some(token) = &self.github_token {
-            request = request
-                .header("Authorization", format!("Bearer {}", token))
-                .header("Accept", "application/vnd.github.raw+json");
-        }
-
-        request
     }
 
     /// Build a URL by appending a path segment, preserving query parameters
@@ -117,7 +96,8 @@ impl TemplateFetcher {
             TemplateSource::Remote(base_url) => {
                 let url = Self::build_url(base_url, "template.yaml")?;
                 let response = self
-                    .build_request(url.clone())
+                    .client
+                    .get(url.clone())
                     .send()
                     .await
                     .with_context(|| {
@@ -305,7 +285,8 @@ impl TemplateFetcher {
                 // Fetch the zip file from remote
                 let zip_url = Self::build_url(base_url, &format!("{}.zip", template_name))?;
                 let response = self
-                    .build_request(zip_url.clone())
+                    .client
+                    .get(zip_url.clone())
                     .send()
                     .await
                     .with_context(|| format!("Failed to fetch template zip: {}", template_name))?;
