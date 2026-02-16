@@ -71,7 +71,7 @@ modules:
   - class: modules::shell::ExecModule
     config:
       watch:
-        - steps/**/*.ts
+        - src/**/*.ts
       exec:
         - npx motia dev
         - node dist/index-dev.js
