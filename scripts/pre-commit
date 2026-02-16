@@ -1,0 +1,14 @@
+#!/bin/bash
+# Git pre-commit hook for motia-tools-rust
+# Automatically rebuilds template zips when template files change
+
+# Get the repo root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# Check if any template files (excluding zips) are staged
+TEMPLATE_CHANGES=$(git diff --cached --name-only -- "$REPO_ROOT/templates" | grep -v '\.zip$' || true)
+
+if [ -n "$TEMPLATE_CHANGES" ]; then
+    echo "Template files changed, rebuilding zips..."
+    "$REPO_ROOT/scripts/build-template-zips.sh"
+fi
