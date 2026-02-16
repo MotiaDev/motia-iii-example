@@ -1,0 +1,32 @@
+name: Quickstart
+description: Learn the iii basics while orchestrating services
+version: "0.1.0"
+
+# Shown as "Included", always selected (not deselectable); runtime checks advisory
+treat_required_as_included: true
+requires:
+  - python
+  - rust
+  - typescript
+optional: []
+
+# Explicit list of files to copy (shared_files from root are added automatically)
+files:
+  - README.md
+  - iii-config.yaml
+  - services/client/package.json
+  - services/client/tsconfig.json
+  - services/client/src/worker.ts
+  - services/data-service/requirements.txt
+  - services/data-service/data_service.py
+  - services/compute-service/Cargo.toml
+  - services/compute-service/src/main.rs
+  - services/payment-service/package.json
+  - services/payment-service/tsconfig.json
+  - services/payment-service/src/external-service.ts
+  - docker-compose.yaml
+  - services/client/Dockerfile
+  - services/compute-service/Dockerfile
+  - services/compute-service/.dockerignore
+  - services/data-service/Dockerfile
+  - services/payment-service/Dockerfile

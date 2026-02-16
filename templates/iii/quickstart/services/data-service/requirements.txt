@@ -1,0 +1,2 @@
+iii-sdk
+pydantic>=2.0.0
