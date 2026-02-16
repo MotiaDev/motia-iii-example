@@ -1,8 +1,9 @@
 # Getting Started
 
-1. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
-2. Run `iii -c config.yaml` to start the server (API on port 3111)
-3. Try some curl commands:
+1. Install dependencies: `pnpm install`
+2. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
+3. Run `iii -c config.yaml` to start the server (API on port 3111)
+4. Try some curl commands:
 
    ```bash
    # Create a ticket
@@ -14,6 +15,6 @@
    curl http://localhost:3111/tickets
    ```
 
-4. Explore `/steps` and `config.yaml` to see how Motia works with MultiTriggers and the iii backend
+5. Explore `/steps` folder and `config.yaml` to see how Motia works with MultiTriggers and the iii backend
 
 Motia is just the beginning, visit https://iii.dev to learn more and stay up to date with our progress.
