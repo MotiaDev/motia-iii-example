@@ -73,5 +73,5 @@ modules:
       watch:
         - steps/**/*.ts
       exec:
-        - npx motia@next dev
+        - npx motia dev
         - node dist/index-dev.js
