@@ -1,5 +1,11 @@
 # Getting Started
 
+## Windows Prerequisites
+
+On Windows, you need to have WSL (Windows Subsystem for Linux) installed with Ubuntu 24.04 for III Engine to work correctly. All commands should be run through the WSL terminal.
+
+## Setup
+
 1. Install dependencies: `npm install`
 2. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
 3. Run `iii -c iii-config.yaml` to start the server (API on port 3111)
