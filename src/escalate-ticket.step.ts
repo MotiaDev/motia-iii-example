@@ -59,7 +59,7 @@ export const { config, handler } = step(stepConfig, async (input, ctx) => {
       })
     },
 
-    api: async (request) => {
+    http: async (request) => {
       const { ticketId, reason } = request.body
 
       ctx.logger.info('Manual escalation via API', { ticketId, reason })

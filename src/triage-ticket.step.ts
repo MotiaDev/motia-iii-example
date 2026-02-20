@@ -78,7 +78,7 @@ export const { config, handler } = step(stepConfig, async (input, ctx) => {
       ctx.logger.info('Ticket auto-triaged', { ticketId, assignee });
     },
 
-    api: async (request) => {
+    http: async (request) => {
       const { ticketId, assignee, priority } = request.body;
 
       const existing = await ctx.state.get('tickets', ticketId);
