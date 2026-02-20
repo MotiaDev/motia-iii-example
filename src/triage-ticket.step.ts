@@ -1,4 +1,4 @@
-import { api, queue, cron, step } from 'motia';
+import { api, queue, cron, step, FlowContext } from 'motia';
 import { z } from 'zod';
 
 /**
@@ -24,6 +24,27 @@ const manualTriageSchema = z.object({
   assignee: z.string(),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
 });
+
+/**
+ * Updates ticket state with triage fields and enqueues the triaged event.
+ * Does nothing if existing is null.
+ */
+async function triageTicket(
+  ticketId: string,
+  existing: Record<string, unknown> | null,
+  stateUpdates: Record<string, unknown>,
+  enqueueData: { assignee: string; priority: string; title: string },
+  ctx: FlowContext<any, any>,
+) {
+  if (existing) {
+    await ctx.state.set('tickets', ticketId, {
+      ...existing,
+      triagedAt: new Date().toISOString(),
+      ...stateUpdates,
+    });
+    await ctx.enqueue({ topic: 'ticket::triaged', data: { ticketId, ...enqueueData } });
+  }
+}
 
 export const stepConfig = {
   name: 'TriageTicket',
@@ -52,88 +73,44 @@ export const { config, handler } = step(stepConfig, async (input, ctx) => {
   return ctx.match({
     queue: async (queueInput) => {
       const { ticketId, title, priority } = queueInput;
-
-      ctx.logger.info('Auto-triaging ticket from queue', {
-        ticketId,
-        priority,
-      });
-
-      const assignee =
-        priority === 'critical' || priority === 'high'
-          ? 'senior-support'
-          : 'support-pool';
-
-      await ctx.state.set('tickets', `${ticketId}:triage`, {
-        ticketId,
-        assignee,
-        triagedAt: new Date().toISOString(),
-        method: 'auto',
-      });
-
-      await ctx.enqueue({
-        topic: 'ticket::triaged',
-        data: { ticketId, assignee, priority, title },
-      });
-
+      ctx.logger.info('Auto-triaging ticket from queue', { ticketId, priority });
+      const assignee = priority === 'critical' || priority === 'high' ? 'senior-support' : 'support-pool';
+      const existing = await ctx.state.get<Record<string, unknown>>('tickets', ticketId);
+      await triageTicket(ticketId, existing, { assignee, triageMethod: 'auto' }, { assignee, priority, title }, ctx);
       ctx.logger.info('Ticket auto-triaged', { ticketId, assignee });
     },
 
-    api: async (request) => {
+    http: async (request) => {
       const { ticketId, assignee, priority } = request.body;
-
-      const existing = await ctx.state.get('tickets', ticketId);
+      const existing = await ctx.state.get<Record<string, unknown>>('tickets', ticketId);
       if (!existing) {
         return { status: 404, body: { error: `Ticket ${ticketId} not found` } };
       }
-
       ctx.logger.info('Manual triage via API', { ticketId, assignee });
-
-      await ctx.state.set('tickets', `${ticketId}:triage`, {
-        ticketId,
-        assignee,
-        priority,
-        triagedAt: new Date().toISOString(),
-        method: 'manual',
-      });
-
-      await ctx.enqueue({
-        topic: 'ticket::triaged',
-        data: { ticketId, assignee, priority, title: 'manual-triage' },
-      });
-
-      return {
-        status: 200,
-        body: { ticketId, assignee, status: 'triaged' },
-      };
+      await triageTicket(ticketId, existing, { assignee, priority, triageMethod: 'manual' }, { assignee, priority, title: existing.title as string }, ctx);
+      return { status: 200, body: { ticketId, assignee, status: 'triaged' } };
     },
 
     cron: async () => {
       ctx.logger.info('Running untriaged ticket sweep.');
-
       const allTickets = await ctx.state.list<{
         id: string;
         status: string;
         priority: string;
         title: string;
+        assignee?: string;
       }>('tickets');
       let swept = 0;
 
       for (const ticket of allTickets) {
-        const triage = await ctx.state.get('tickets', `${ticket.id}:triage`);
-        if (!triage && ticket.status === 'open') {
-          ctx.logger.warn('Found untriaged ticket during sweep', {
-            ticketId: ticket.id,
-          });
-
-          await ctx.enqueue({
-            topic: 'ticket::triaged',
-            data: {
-              ticketId: ticket.id,
-              assignee: 'support-pool',
-              priority: ticket.priority || 'medium',
-              title: ticket.title || 'unknown',
-            },
-          });
+        if (!ticket.assignee && ticket.status === 'open') {
+          ctx.logger.warn('Found untriaged ticket during sweep', { ticketId: ticket.id });
+          await triageTicket(
+            ticket.id, ticket,
+            { assignee: 'support-pool', triageMethod: 'auto-sweep' },
+            { assignee: 'support-pool', priority: ticket.priority || 'medium', title: ticket.title || 'unknown' },
+            ctx,
+          );
           swept++;
         }
       }

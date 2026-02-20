@@ -1,26 +1,54 @@
 # Getting Started
 
-## Windows Prerequisites
-
-On Windows, you need to have WSL (Windows Subsystem for Linux) installed with Ubuntu 24.04 for III Engine to work correctly. All commands should be run through the WSL terminal.
-
 ## Setup
 
 1. Install dependencies: `npm install`
 2. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
-3. Run `iii -c config.yaml` to start the server (API on port 3111)
+3. Run `iii --config iii-config.yaml` to start the server (API on port 3111)
 4. Try some curl commands:
 
    ```bash
-   # Create a ticket
-   curl -X POST http://localhost:3111/tickets \
-     -H "Content-Type: application/json" \
-     -d '{"title":"Login issue","description":"Cannot access account","priority":"high","customerEmail":"user@example.com"}'
+   # 1. List tickets (initially empty)
+   curl -s -X GET http://127.0.0.1:3111/tickets | jq .
 
-   # List all tickets
-   curl http://localhost:3111/tickets
+   # 2. Create a new support ticket
+   curl -s -X POST http://127.0.0.1:3111/tickets \
+     -H "Content-Type: application/json" \
+     -d '{
+       "title": "User reports that the login page is broken",
+       "description": "Users cannot log in - getting 500 error",
+       "priority": "critical",
+       "customerEmail": "user@example.com"
+     }' | jq .
+
+   # 3. List tickets to see the created ticket (note the ticketId from step 2, or grab it with | jq -r '.ticketId')
+   curl -s -X GET http://127.0.0.1:3111/tickets | jq .
+
+   # 4. Manually triage/reassign the ticket (replace TICKET_ID with actual ID)
+   curl -s -X POST http://127.0.0.1:3111/tickets/triage \
+     -H "Content-Type: application/json" \
+     -d '{
+       "ticketId": "TICKET_ID",
+       "assignee": "senior-engineer",
+       "priority": "critical"
+     }' | jq .
+
+   # 5. Escalate the ticket (replace TICKET_ID with actual ID)
+   curl -s -X POST http://127.0.0.1:3111/tickets/escalate \
+     -H "Content-Type: application/json" \
+     -d '{
+       "ticketId": "TICKET_ID",
+       "reason": "Customer is enterprise tier - needs immediate attention"
+     }' | jq .
+
+   # 6. List tickets to see all state changes
+   curl -s -X GET http://127.0.0.1:3111/tickets | jq .
    ```
 
-5. Explore `/steps` folder and `config.yaml` to see how Motia works with MultiTriggers and the iii backend
+5. Explore `src/` folder and `iii-config.yaml` to see how Motia works with MultiTriggers and the iii backend
 
 Motia is just the beginning, visit https://iii.dev to learn more and stay up to date with our progress.
+
+## Windows Binaries
+
+We do not yet have an installer for iii on Windows. The binary can be downloaded from the Github Releases page: https://github.com/iii-hq/iii/releases/latest
