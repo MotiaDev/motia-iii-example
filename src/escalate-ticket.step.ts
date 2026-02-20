@@ -1,4 +1,4 @@
-import { queue, api, step } from 'motia'
+import { queue, api, step, FlowContext } from 'motia'
 import { z } from 'zod'
 
 /**
@@ -21,6 +21,26 @@ const manualEscalateSchema = z.object({
   reason: z.string(),
 })
 
+/**
+ * Fetches a ticket and applies escalation fields to state.
+ * Returns the pre-update ticket, or null if it doesn't exist.
+ */
+async function escalateTicket(
+  ticketId: string,
+  updates: { escalationReason: string; escalationMethod: 'auto' | 'manual' },
+  ctx: FlowContext<any, any>,
+) {
+  const existing = await ctx.state.get<Record<string, unknown>>('tickets', ticketId)
+  if (!existing) return null
+  await ctx.state.set('tickets', ticketId, {
+    ...existing,
+    escalatedTo: 'engineering-lead',
+    escalatedAt: new Date().toISOString(),
+    ...updates,
+  })
+  return existing
+}
+
 export const stepConfig = {
   name: 'EscalateTicket',
   description: 'Multi-trigger: escalates tickets from SLA breach or manual request',
@@ -38,9 +58,7 @@ export const stepConfig = {
 }
 
 export const { config, handler } = step(stepConfig, async (input, ctx) => {
-  const data = ctx.getData()
-  const ticketId = (data as { ticketId: string }).ticketId
-
+  const ticketId = (ctx.getData() as { ticketId: string }).ticketId
   ctx.logger.info('Escalating ticket', { ticketId, triggerType: ctx.trigger.type })
 
   return ctx.match({
@@ -50,34 +68,27 @@ export const { config, handler } = step(stepConfig, async (input, ctx) => {
         ageMinutes: breach.ageMinutes,
         priority: breach.priority,
       })
-
-      await ctx.state.set('tickets', `${breach.ticketId}:escalation`, {
-        escalatedTo: 'engineering-lead',
-        reason: `SLA breach: ${breach.ageMinutes} minutes without resolution`,
-        method: 'auto',
-        escalatedAt: new Date().toISOString(),
-      })
+      await escalateTicket(
+        breach.ticketId,
+        { escalationReason: `SLA breach: ${breach.ageMinutes} minutes without resolution`, escalationMethod: 'auto' },
+        ctx,
+      )
     },
 
     http: async (request) => {
       const { ticketId, reason } = request.body
-
+      const existing = await escalateTicket(
+        ticketId,
+        { escalationReason: reason, escalationMethod: 'manual' },
+        ctx,
+      )
+      if (!existing) {
+        return { status: 404, body: { error: `Ticket ${ticketId} not found` } }
+      }
       ctx.logger.info('Manual escalation via API', { ticketId, reason })
-
-      await ctx.state.set('tickets', `${ticketId}:escalation`, {
-        escalatedTo: 'engineering-lead',
-        reason,
-        method: 'manual',
-        escalatedAt: new Date().toISOString(),
-      })
-
       return {
         status: 200,
-        body: {
-          ticketId,
-          escalatedTo: 'engineering-lead',
-          message: 'Ticket escalated successfully',
-        },
+        body: { ticketId, escalatedTo: 'engineering-lead', message: 'Ticket escalated successfully' },
       }
     },
   })

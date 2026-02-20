@@ -13,13 +13,13 @@
    curl -s -X POST http://127.0.0.1:3111/tickets \
      -H "Content-Type: application/json" \
      -d '{
-       "title": "Login page broken",
+       "title": "User reports that the login page is broken",
        "description": "Users cannot log in - getting 500 error",
        "priority": "critical",
        "customerEmail": "user@example.com"
      }' | jq .
 
-   # 3. List tickets to see the created ticket (note the ticketId for next steps)
+   # 3. List tickets to see the created ticket (note the ticketId from step 2, or grab it with | jq -r '.ticketId')
    curl -s -X GET http://127.0.0.1:3111/tickets | jq .
 
    # 4. Manually triage/reassign the ticket (replace TICKET_ID with actual ID)
