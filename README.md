@@ -48,3 +48,7 @@
 5. Explore `src/` folder and `iii-config.yaml` to see how Motia works with MultiTriggers and the iii backend
 
 Motia is just the beginning, visit https://iii.dev to learn more and stay up to date with our progress.
+
+## Windows Binaries
+
+We do not yet have an installer for iii on Windows. The binary can be downloaded from the Github Releases page: https://github.com/iii-hq/iii/releases/latest
