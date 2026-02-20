@@ -2,7 +2,7 @@
 
 1. Install dependencies: `npm install`
 2. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
-3. Run `iii -c iii-config.yaml` to start the server (API on port 3111)
+3. Run `iii -c config.yaml` to start the server (API on port 3111)
 4. Try some curl commands:
 
    ```bash
