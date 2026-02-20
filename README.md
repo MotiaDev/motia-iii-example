@@ -1,9 +1,5 @@
 # Getting Started
 
-## Windows Prerequisites
-
-On Windows, you need to have WSL (Windows Subsystem for Linux) installed with Ubuntu 24.04 for III Engine to work correctly. All commands should be run through the WSL terminal.
-
 ## Setup
 
 1. Install dependencies: `npm install`
@@ -52,3 +48,7 @@ On Windows, you need to have WSL (Windows Subsystem for Linux) installed with Ub
 5. Explore `src/` folder and `iii-config.yaml` to see how Motia works with MultiTriggers and the iii backend
 
 Motia is just the beginning, visit https://iii.dev to learn more and stay up to date with our progress.
+
+## Windows Prerequisites
+
+On Windows, you need to have WSL (Windows Subsystem for Linux) installed with Ubuntu 24.04 for III Engine to work correctly. All commands should be run through the WSL terminal.
