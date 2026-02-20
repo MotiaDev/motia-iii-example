@@ -27,7 +27,7 @@ const manualTriageSchema = z.object({
 
 /**
  * Updates ticket state with triage fields and enqueues the triaged event.
- * Skips the state update if existing is null, but always enqueues.
+ * Does nothing if existing is null.
  */
 async function triageTicket(
   ticketId: string,
@@ -42,8 +42,8 @@ async function triageTicket(
       triagedAt: new Date().toISOString(),
       ...stateUpdates,
     });
+    await ctx.enqueue({ topic: 'ticket::triaged', data: { ticketId, ...enqueueData } });
   }
-  await ctx.enqueue({ topic: 'ticket::triaged', data: { ticketId, ...enqueueData } });
 }
 
 export const stepConfig = {

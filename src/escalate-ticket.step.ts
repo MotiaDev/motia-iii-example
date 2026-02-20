@@ -68,11 +68,15 @@ export const { config, handler } = step(stepConfig, async (input, ctx) => {
         ageMinutes: breach.ageMinutes,
         priority: breach.priority,
       })
-      await escalateTicket(
+      const escalated = await escalateTicket(
         breach.ticketId,
         { escalationReason: `SLA breach: ${breach.ageMinutes} minutes without resolution`, escalationMethod: 'auto' },
         ctx,
       )
+      if (!escalated) {
+        ctx.logger.error('Ticket not found during SLA escalation', { ticketId: breach.ticketId, ageMinutes: breach.ageMinutes })
+        return
+      }
     },
 
     http: async (request) => {
