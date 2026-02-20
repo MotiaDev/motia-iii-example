@@ -2,10 +2,7 @@
   "name": "motia-iii-example",
   "version": "0.0.1",
   "type": "module",
-  "scripts": {
-    "dev": "iii --config iii-config.yaml",
-    "build": "motia build"
-  },
+  "scripts": {},
   "dependencies": {
     "motia": "1.0.0-rc.14",
     "zod": "^4.1.13"
