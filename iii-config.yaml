@@ -25,7 +25,7 @@ modules:
       concurrency_request_limit: 1024
       cors:
         allowed_origins:
-          - "localhost"
+          - "*"
         allowed_methods:
           - GET
           - POST
