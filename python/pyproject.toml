@@ -6,7 +6,8 @@ authors = [{ name = "III" }]
 requires-python = ">=3.10"
 
 dependencies = [
-    "motia[otel]",
+    "motia[otel]==0.2.2a20260223222353",
     "iii-sdk==0.2.0",
     "pydantic>=2.0",
 ]
+
