@@ -1,53 +1,113 @@
-# Getting Started
+# Motia iii Example — Multi-Language Support
 
-## Setup
+This project demonstrates the same support ticket workflow implemented in both **TypeScript** and **Python**, showcasing Motia's multi-language capabilities.
 
-1. Install dependencies: `npm install`
-2. Check if iii is installed: `iii --version` (if not, visit https://iii.dev/docs)
-3. Run `iii --config iii-config.yaml` to start the server (API on port 3111)
-4. Try some curl commands:
+## Project Structure
 
-   ```bash
-   # 1. List tickets (initially empty)
-   curl -s -X GET http://127.0.0.1:3111/tickets | jq .
+```
+├── typescript/          # TypeScript implementation (iii engine)
+│   ├── src/             # Step files (.step.ts)
+│   ├── iii-config.yaml  # iii engine configuration
+│   ├── package.json
+│   └── tsconfig.json
+├── python/              # Python implementation (motia-py)
+│   ├── steps/           # Step files (_step.py + .step.py markers)
+│   └── pyproject.toml
+```
 
-   # 2. Create a new support ticket
-   curl -s -X POST http://127.0.0.1:3111/tickets \
-     -H "Content-Type: application/json" \
-     -d '{
-       "title": "User reports that the login page is broken",
-       "description": "Users cannot log in - getting 500 error",
-       "priority": "critical",
-       "customerEmail": "user@example.com"
-     }' | jq .
+Both implementations are fully independent and can run simultaneously.
 
-   # 3. List tickets to see the created ticket (note the ticketId from step 2, or grab it with | jq -r '.ticketId')
-   curl -s -X GET http://127.0.0.1:3111/tickets | jq .
+## Prerequisites
 
-   # 4. Manually triage/reassign the ticket (replace TICKET_ID with actual ID)
-   curl -s -X POST http://127.0.0.1:3111/tickets/triage \
-     -H "Content-Type: application/json" \
-     -d '{
-       "ticketId": "TICKET_ID",
-       "assignee": "senior-engineer",
-       "priority": "critical"
-     }' | jq .
+- [iii CLI](https://iii.dev/docs): `iii --version`
 
-   # 5. Escalate the ticket (replace TICKET_ID with actual ID)
-   curl -s -X POST http://127.0.0.1:3111/tickets/escalate \
-     -H "Content-Type: application/json" \
-     -d '{
-       "ticketId": "TICKET_ID",
-       "reason": "Customer is enterprise tier - needs immediate attention"
-     }' | jq .
+**TypeScript:**
+- Node.js
 
-   # 6. List tickets to see all state changes
-   curl -s -X GET http://127.0.0.1:3111/tickets | jq .
-   ```
+**Python:**
+- Python 3.10+
+- [uv](https://astral.sh/uv): `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-5. Explore `src/` folder and `iii-config.yaml` to see how Motia works with MultiTriggers and the iii backend
+## Running the TypeScript Example
 
-Motia is just the beginning, visit https://iii.dev to learn more and stay up to date with our progress.
+```bash
+cd typescript
+npm install
+iii --config iii-config.yaml
+```
+
+API available at `http://127.0.0.1:3111`
+
+## Running the Python Example
+
+```bash
+cd python
+uv sync --all-extras
+uv run motia run --dir steps
+```
+
+API available at the port shown in the console output.
+
+## Try It Out
+
+Replace the port as needed based on which implementation you're running:
+
+```bash
+# 1. List tickets (initially empty)
+curl -s -X GET http://127.0.0.1:3111/tickets | jq .
+
+# 2. Create a new support ticket
+curl -s -X POST http://127.0.0.1:3111/tickets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "User reports that the login page is broken",
+    "description": "Users cannot log in - getting 500 error",
+    "priority": "critical",
+    "customerEmail": "user@example.com"
+  }' | jq .
+
+# 3. List tickets to see the created ticket
+curl -s -X GET http://127.0.0.1:3111/tickets | jq .
+
+# 4. Manually triage/reassign the ticket (replace TICKET_ID)
+curl -s -X POST http://127.0.0.1:3111/tickets/triage \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ticketId": "TICKET_ID",
+    "assignee": "senior-engineer",
+    "priority": "critical"
+  }' | jq .
+
+# 5. Escalate the ticket (replace TICKET_ID)
+curl -s -X POST http://127.0.0.1:3111/tickets/escalate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ticketId": "TICKET_ID",
+    "reason": "Customer is enterprise tier - needs immediate attention"
+  }' | jq .
+
+# 6. List tickets to see all state changes
+curl -s -X GET http://127.0.0.1:3111/tickets | jq .
+```
+
+## Step Patterns
+
+Both implementations demonstrate the same patterns:
+
+| Pattern | TypeScript | Python |
+|---------|-----------|--------|
+| HTTP POST handler | `create-ticket.step.ts` | `create_ticket_step.py` |
+| HTTP GET handler | `list-tickets.step.ts` | `list_tickets_step.py` |
+| Queue consumer | `notify-customer.step.ts` | `notify_customer_step.py` |
+| Cron job | `sla-monitor.step.ts` | `sla_monitor_step.py` |
+| Multi-trigger (queue+HTTP+cron) | `triage-ticket.step.ts` | `triage_ticket_step.py` |
+| Multi-trigger (queue+HTTP) | `escalate-ticket.step.ts` | `escalate_ticket_step.py` |
+
+## Learn More
+
+- [Motia Documentation](https://www.motia.dev/docs)
+- [iii Engine Documentation](https://iii.dev/docs)
+- [iii GitHub Repository](https://github.com/iii-hq/iii)
 
 ## Windows Binaries
 
