@@ -44,7 +44,7 @@ async def handler(request: ApiRequest[dict[str, Any]], ctx: FlowContext[Any]) ->
     await ctx.state.set("tickets", ticket_id, ticket)
     ctx.logger.info("Ticket created", {"ticketId": ticket_id, "priority": priority})
 
-    await ctx.emit({
+    await ctx.enqueue({
         "topic": "ticket::created",
         "data": {
             "ticketId": ticket_id,

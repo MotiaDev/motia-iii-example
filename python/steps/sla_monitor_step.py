@@ -54,7 +54,7 @@ async def handler(input_data: None, ctx: FlowContext[Any]) -> None:
                 "ageMinutes": age_minutes,
             })
 
-            await ctx.emit({
+            await ctx.enqueue({
                 "topic": "ticket::sla-breached",
                 "data": {
                     "ticketId": ticket["id"],

@@ -33,7 +33,7 @@ async def _triage_ticket(
         return
     updated = {**existing, "triagedAt": datetime.now(timezone.utc).isoformat(), **state_updates}
     await ctx.state.set("tickets", ticket_id, updated)
-    await ctx.emit({"topic": "ticket::triaged", "data": {"ticketId": ticket_id, **enqueue_data}})
+    await ctx.enqueue({"topic": "ticket::triaged", "data": {"ticketId": ticket_id, **enqueue_data}})
 
 
 async def handler(input_data: Any, ctx: FlowContext[Any]) -> Any:
