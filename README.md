@@ -12,6 +12,7 @@ This project demonstrates the same support ticket workflow implemented in both *
 │   └── tsconfig.json
 ├── python/              # Python implementation (motia-py)
 │   ├── steps/           # Step files (_step.py + .step.py markers)
+│   ├── iii-config.yaml  # iii engine configuration
 │   └── pyproject.toml
 ```
 
@@ -43,10 +44,10 @@ API available at `http://127.0.0.1:3111`
 ```bash
 cd python
 uv sync --all-extras
-uv run motia run --dir steps
+iii --config iii-config.yaml
 ```
 
-API available at the port shown in the console output.
+API available at `http://127.0.0.1:3113`
 
 ## Try It Out
 
