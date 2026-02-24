@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {},
   "dependencies": {
-    "motia": "1.0.0-rc.22",
+    "motia": "1.0.0-rc.24",
     "zod": "^4.1.13"
   },
   "devDependencies": {
