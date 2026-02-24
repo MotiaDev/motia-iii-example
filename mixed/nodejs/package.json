@@ -1,0 +1,1 @@
+{"name":"motia-iii-example-mixed","version":"0.0.1","type":"module","scripts":{},"dependencies":{"motia":"1.0.0-rc.22","zod":"^4.1.13"},"devDependencies":{"@types/node":"^24.10.1","typescript":"^5.9.3"}}

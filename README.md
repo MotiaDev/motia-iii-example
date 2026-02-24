@@ -1,40 +1,47 @@
 # Motia iii Example — Multi-Language Support
 
-This project demonstrates the same support ticket workflow implemented in both **TypeScript** and **Python**, showcasing Motia's multi-language capabilities.
+This project demonstrates the same support ticket workflow in **Node.js** (TypeScript), **Python**, and **Mixed** (both runtimes in one project). Python developers don't need npm; Node.js developers don't need Python.
 
 ## Project Structure
 
 ```
-├── typescript/          # TypeScript implementation (iii engine)
+├── nodejs/              # TypeScript/Node.js implementation
 │   ├── src/             # Step files (.step.ts)
 │   ├── iii-config.yaml  # iii engine configuration
 │   ├── package.json
 │   └── tsconfig.json
-├── python/              # Python implementation (motia-py)
-│   ├── steps/           # Step files (_step.py + .step.py markers)
+├── python/              # Python implementation
+│   ├── steps/           # Step files (_step.py)
 │   ├── iii-config.yaml  # iii engine configuration
 │   └── pyproject.toml
+├── mixed/               # Node.js + Python in one project
+│   ├── iii-config.yaml  # Two ExecModules (one per runtime)
+│   ├── nodejs/          # HTTP API endpoints
+│   └── python/          # Queue and cron steps
 ```
 
-Both implementations are fully independent and can run simultaneously.
+The `nodejs` and `python` directories are fully independent. The `mixed` template runs both runtimes sharing the same iii infrastructure.
 
 ## Prerequisites
 
-- [iii CLI](https://iii.dev/docs): `iii --version`
+- [iii CLI](https://iii.dev/docs): `iii -v`
 
-**TypeScript:**
-- Node.js
+**Node.js:**
+- Node.js 18+
 
 **Python:**
 - Python 3.10+
 - [uv](https://astral.sh/uv): `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-## Running the TypeScript Example
+**Mixed:**
+- Both Node.js and Python prerequisites
+
+## Running the Node.js Example
 
 ```bash
-cd typescript
+cd nodejs
 npm install
-iii --config iii-config.yaml
+iii -c iii-config.yaml
 ```
 
 API available at `http://127.0.0.1:3111`
@@ -43,11 +50,22 @@ API available at `http://127.0.0.1:3111`
 
 ```bash
 cd python
-uv sync --all-extras
-iii --config iii-config.yaml
+uv sync
+iii -c iii-config.yaml
 ```
 
 API available at `http://127.0.0.1:3113`
+
+## Running the Mixed Example
+
+```bash
+cd mixed
+(cd nodejs && npm install)
+(cd python && uv sync)
+iii -c iii-config.yaml
+```
+
+Node.js handles HTTP endpoints; Python handles queue and cron triggers. API available at `http://127.0.0.1:3111`
 
 ## Try It Out
 
