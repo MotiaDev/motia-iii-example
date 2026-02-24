@@ -54,7 +54,7 @@ uv sync
 iii -c iii-config.yaml
 ```
 
-API available at `http://127.0.0.1:3113`
+API available at `http://127.0.0.1:3111`
 
 ## Running the Mixed Example
 
