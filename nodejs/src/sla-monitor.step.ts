@@ -65,4 +65,12 @@ export const handler: Handlers<typeof config> = async (
   }
 
   logger.info('SLA check complete', { totalTickets: tickets.length, breaches });
+
+  return {
+    status: 200,
+    body: { 
+      totalTickets: tickets.length,
+      breaches,
+    },
+  };
 };
