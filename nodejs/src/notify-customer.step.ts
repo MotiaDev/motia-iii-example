@@ -37,4 +37,15 @@ export const handler: Handlers<typeof config> = async (input, { logger, state })
     title,
     email: redactedEmail,
   })
+
+  return {
+    status: 200,
+    body: {
+      ticketId,
+      assignee,
+      priority,
+      title,
+      email: redactedEmail,
+    },
+  }
 }
