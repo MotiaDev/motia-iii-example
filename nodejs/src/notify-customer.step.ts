@@ -1,4 +1,4 @@
-import type { Handlers, StepConfig } from 'motia'
+import { type Handlers, logger, queue, type StepConfig, stateManager } from 'motia'
 import { z } from 'zod'
 
 const triagedSchema = z.object({
@@ -12,22 +12,16 @@ export const config = {
   name: 'NotifyCustomer',
   description: 'Sends a notification when a ticket has been triaged',
   flows: ['support-ticket-flow'],
-  triggers: [
-    {
-      type: 'queue',
-      topic: 'ticket::triaged',
-      input: triagedSchema,
-    },
-  ],
+  triggers: [queue('ticket::triaged', { input: triagedSchema })],
   enqueues: [],
 } as const satisfies StepConfig
 
-export const handler: Handlers<typeof config> = async (input, { logger, state }) => {
+export const handler: Handlers<typeof config> = async (input) => {
   const { ticketId, assignee, priority, title } = input
 
   logger.info('Sending customer notification', { ticketId, assignee })
 
-  const ticket = await state.get<{ customerEmail: string }>('tickets', ticketId)
+  const ticket = await stateManager.get<{ customerEmail: string }>('tickets', ticketId)
   const redactedEmail = ticket?.customerEmail?.replace(/(?<=.{2}).(?=.*@)/g, '*') ?? 'unknown'
 
   logger.info('Notification sent', {
