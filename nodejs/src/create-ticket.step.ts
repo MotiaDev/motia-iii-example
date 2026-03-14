@@ -1,17 +1,16 @@
-import type { Handlers, StepConfig } from 'motia';
-import { z } from 'zod';
+import { enqueue, type Handlers, logger, type StepConfig, stateManager } from 'motia'
+import { z } from 'zod'
 
 const ticketSchema = z.object({
   title: z.string(),
   description: z.string(),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   customerEmail: z.string(),
-});
+})
 
 export const config = {
   name: 'CreateTicket',
-  description:
-    'Accepts a new support ticket via API and enqueues it for triage',
+  description: 'Accepts a new support ticket via API and enqueues it for triage',
   flows: ['support-ticket-flow'],
   triggers: [
     {
@@ -30,22 +29,19 @@ export const config = {
     },
   ],
   enqueues: ['ticket::created'],
-} as const satisfies StepConfig;
+} as const satisfies StepConfig
 
-export const handler: Handlers<typeof config> = async (
-  request,
-  { enqueue, logger, state },
-) => {
-  const { title, description, priority, customerEmail } = request.body;
+export const handler: Handlers<typeof config> = async ({ request }) => {
+  const { title, description, priority, customerEmail } = request.body
 
   if (!title || !description) {
     return {
       status: 400,
       body: { error: 'Title and description are required' },
-    };
+    }
   }
 
-  const ticketId = `TKT-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const ticketId = `TKT-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
 
   const ticket = {
     id: ticketId,
@@ -55,16 +51,16 @@ export const handler: Handlers<typeof config> = async (
     customerEmail,
     status: 'open',
     createdAt: new Date().toISOString(),
-  };
+  }
 
-  await state.set('tickets', ticketId, ticket);
+  await stateManager.set('tickets', ticketId, ticket)
 
-  logger.info('Ticket created', { ticketId, priority });
+  logger.info('Ticket created', { ticketId, priority })
 
   await enqueue({
     topic: 'ticket::created',
     data: { ticketId, title, priority, customerEmail },
-  });
+  })
 
   return {
     status: 200,
@@ -73,5 +69,5 @@ export const handler: Handlers<typeof config> = async (
       status: 'open',
       message: 'Ticket created and queued for triage',
     },
-  };
-};
+  }
+}

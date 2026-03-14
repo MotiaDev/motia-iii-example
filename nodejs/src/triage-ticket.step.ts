@@ -1,11 +1,11 @@
-import { api, queue, cron, step, FlowContext } from 'motia';
-import { z } from 'zod';
+import { cron, enqueue, http, logger, queue, stateManager, step } from 'motia'
+import { z } from 'zod'
 
 /**
  * Multi-trigger step: demonstrates a single step responding to three trigger types.
  *
  * - queue:  automatically triages newly created tickets
- * - api:    lets a support agent manually re-triage any ticket
+ * - http:    lets a support agent manually re-triage any ticket
  * - cron:   periodically sweeps for untriaged tickets
  *
  * The handler uses ctx.match() to route to the correct logic per trigger,
@@ -17,13 +17,13 @@ const ticketEventSchema = z.object({
   title: z.string(),
   priority: z.string(),
   customerEmail: z.string(),
-});
+})
 
 const manualTriageSchema = z.object({
   ticketId: z.string(),
   assignee: z.string(),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
-});
+})
 
 /**
  * Updates ticket state with triage fields and enqueues the triaged event.
@@ -34,26 +34,24 @@ async function triageTicket(
   existing: Record<string, unknown> | null,
   stateUpdates: Record<string, unknown>,
   enqueueData: { assignee: string; priority: string; title: string },
-  ctx: FlowContext<any, any>,
 ) {
   if (existing) {
-    await ctx.state.set('tickets', ticketId, {
+    await stateManager.set('tickets', ticketId, {
       ...existing,
       triagedAt: new Date().toISOString(),
       ...stateUpdates,
-    });
-    await ctx.enqueue({ topic: 'ticket::triaged', data: { ticketId, ...enqueueData } });
+    })
+    await enqueue({ topic: 'ticket::triaged', data: { ticketId, ...enqueueData } })
   }
 }
 
 export const stepConfig = {
   name: 'TriageTicket',
-  description:
-    'Multi-trigger: auto-triage from queue, manual triage via API, sweep via cron',
+  description: 'Multi-trigger: auto-triage from queue, manual triage via API, sweep via cron',
   flows: ['support-ticket-flow'],
   triggers: [
     queue('ticket::created', { input: ticketEventSchema }),
-    api('POST', '/tickets/triage', {
+    http('POST', '/tickets/triage', {
       bodySchema: manualTriageSchema,
       responseSchema: {
         200: z.object({
@@ -67,55 +65,66 @@ export const stepConfig = {
     cron('0 */5 * * * * *'), // every 5 minutes
   ],
   enqueues: ['ticket::triaged'],
-};
+}
 
-export const { config, handler } = step(stepConfig, async (input, ctx) => {
+export const { config, handler } = step(stepConfig, async (_input, ctx) => {
   return ctx.match({
     queue: async (queueInput) => {
-      const { ticketId, title, priority } = queueInput;
-      ctx.logger.info('Auto-triaging ticket from queue', { ticketId, priority });
-      const assignee = priority === 'critical' || priority === 'high' ? 'senior-support' : 'support-pool';
-      const existing = await ctx.state.get<Record<string, unknown>>('tickets', ticketId);
-      await triageTicket(ticketId, existing, { assignee, triageMethod: 'auto' }, { assignee, priority, title }, ctx);
-      ctx.logger.info('Ticket auto-triaged', { ticketId, assignee });
+      const { ticketId, title, priority } = queueInput
+      logger.info('Auto-triaging ticket from queue', { ticketId, priority })
+
+      const assignee = priority === 'critical' || priority === 'high' ? 'senior-support' : 'support-pool'
+      const existing = await stateManager.get<Record<string, unknown>>('tickets', ticketId)
+
+      await triageTicket(ticketId, existing, { assignee, triageMethod: 'auto' }, { assignee, priority, title })
+
+      logger.info('Ticket auto-triaged', { ticketId, assignee })
     },
 
-    http: async (request) => {
-      const { ticketId, assignee, priority } = request.body;
-      const existing = await ctx.state.get<Record<string, unknown>>('tickets', ticketId);
+    http: async ({ request }) => {
+      const { ticketId, assignee, priority } = request.body
+      const existing = await stateManager.get<Record<string, unknown>>('tickets', ticketId)
+
       if (!existing) {
-        return { status: 404, body: { error: `Ticket ${ticketId} not found` } };
+        return { status: 404, body: { error: `Ticket ${ticketId} not found` } }
       }
-      ctx.logger.info('Manual triage via API', { ticketId, assignee });
-      await triageTicket(ticketId, existing, { assignee, priority, triageMethod: 'manual' }, { assignee, priority, title: existing.title as string }, ctx);
-      return { status: 200, body: { ticketId, assignee, status: 'triaged' } };
+
+      logger.info('Manual triage via API', { ticketId, assignee })
+      await triageTicket(
+        ticketId,
+        existing,
+        { assignee, priority, triageMethod: 'manual' },
+        { assignee, priority, title: existing.title as string },
+      )
+
+      return { status: 200, body: { ticketId, assignee, status: 'triaged' } }
     },
 
     cron: async () => {
-      ctx.logger.info('Running untriaged ticket sweep.');
-      const allTickets = await ctx.state.list<{
-        id: string;
-        status: string;
-        priority: string;
-        title: string;
-        assignee?: string;
-      }>('tickets');
-      let swept = 0;
+      logger.info('Running untriaged ticket sweep.')
+      const allTickets = await stateManager.list<{
+        id: string
+        status: string
+        priority: string
+        title: string
+        assignee?: string
+      }>('tickets')
+      let swept = 0
 
       for (const ticket of allTickets) {
         if (!ticket.assignee && ticket.status === 'open') {
-          ctx.logger.warn('Found untriaged ticket during sweep', { ticketId: ticket.id });
+          logger.warn('Found untriaged ticket during sweep', { ticketId: ticket.id })
           await triageTicket(
-            ticket.id, ticket,
+            ticket.id,
+            ticket,
             { assignee: 'support-pool', triageMethod: 'auto-sweep' },
             { assignee: 'support-pool', priority: ticket.priority || 'medium', title: ticket.title || 'unknown' },
-            ctx,
-          );
-          swept++;
+          )
+          swept++
         }
       }
 
-      ctx.logger.info('Sweep complete', { sweptCount: swept });
+      logger.info('Sweep complete', { sweptCount: swept })
     },
-  });
-});
+  })
+})
